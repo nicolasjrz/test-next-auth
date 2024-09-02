@@ -7,7 +7,7 @@ import { useState } from "react";
 import { ErrorFormMessage } from "./ui/ErrorFormMessage";
 import { Button, Input, Label } from "../ui";
 import { useToast } from "@/hooks/use-toast";
-import { login } from "@/actions/login";
+import { login } from "@/actions/auth/login";
 
 interface FormInputs {
 	email: string;
@@ -44,17 +44,11 @@ export const LoginForm = () => {
 		try {
 			const resp = await login(loginData); // Asegúrate de que `login` retorne el objeto esperado
 
-			// if (resp?.success) {
-			// 	// Si `success` es verdadero
-			// 	setMessageError("");
-			// 	toast({
-			// 		title: "Confirmación de Correo Enviada",
-			// 		description: resp.success,
-			// 	});
-			// } else {
-			// 	// En caso de error
-			// 	setMessageError(resp?.error || ""); // Establecer mensaje de error
-			// }
+			console.log({ resp });
+
+			if (resp?.error) {
+				setMessageError(resp?.error || ""); // Establecer mensaje de error
+			}
 		} catch (error) {
 			console.error("Error durante la solicitud:", error); // Registrar el error
 			setMessageError("Error al enviar la solicitud"); // Mensaje de error genérico
