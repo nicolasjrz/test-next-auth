@@ -1,7 +1,5 @@
-import { GoogleButton } from "@/components/button/GoogleButton";
 import { LoginForm } from "@/components/form/LoginForm";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 export default function LoginPage() {
 	return (
@@ -13,20 +11,6 @@ export default function LoginPage() {
 			<div className="flex flex-col">
 				<LoginForm />
 				{/* <div className="flex w-full items-center justify-center h-[40px] max-lg:justify-center px-4 ">o</div> */}
-				<GoogleButton />
-				<div className="flex w-full  flex-col  items-center justify-center h-[40px] max-lg:justify-center px-4 ">
-					<div>
-						<Link href={"/auth/register"} className="font-light text-sm">
-							Dont have an account?
-						</Link>
-					</div>
-
-					<div>
-						<Link href={"/auth/reset"} className="font-light text-sm">
-							se olvido la contracenia?
-						</Link>
-					</div>
-				</div>
 			</div>
 		</div>
 	);
