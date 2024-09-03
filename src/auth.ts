@@ -3,6 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import authConfig from "./auth.config"
 import prisma from "./lib/prisma"
 import { getUserById } from "./actions/user/get-user-by-id";
+import { getToken } from "next-auth/jwt";
 
 
 
@@ -73,13 +74,23 @@ export const {
         return token; // Devuelve el token modificado
       },
       async redirect({ url, baseUrl }) {
-        // Allows relative callback URLs
-        if (url.startsWith("/")) return `${baseUrl}${url}`
-        // Allows callback URLs on the same origin
-        else if (new URL(url).origin === baseUrl) return url
-
-       
-        return baseUrl
+        // Define redirecciones basadas en el rol del usuario
+     const token = await getToken({
+		req:url,
+		secret: process.env.AUTH_SECRET,
+	});
+  
+        if (token?.role === "administrator") {
+          return "/admin"; // Redirigir a la página de admin
+        } else if (token?.role === "user") {
+          return "/"; // Redirigir al dashboard de usuarios
+        }
+  
+        // Redirección por defecto
+        if (url.startsWith("/")) return `${baseUrl}${url}`;
+        else if (new URL(url).origin === baseUrl) return url;
+  
+        return baseUrl;
       }
     },
   

@@ -31,6 +31,12 @@ export const apiAuthPrefix = "/api/auth";
  * @type {string}
  */
 
+const fafa = "fafa";
+
+if (fafa === "fafa") {
+	console.log("estoy en route");
+}
+
 export const DEFAULT_LOGIN_USER_REDIRECT = "/";
 
 export const DEFAULT_LOGIN_ADMIN_REDIRECT = "/admin";
