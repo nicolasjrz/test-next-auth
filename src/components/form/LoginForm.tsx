@@ -8,6 +8,8 @@ import { ErrorFormMessage } from "./ui/ErrorFormMessage";
 import { Button, Input, Label } from "../ui";
 import { useToast } from "@/hooks/use-toast";
 import { login } from "@/actions/auth/login";
+import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
 interface FormInputs {
 	email: string;
@@ -16,10 +18,17 @@ interface FormInputs {
 
 export const LoginForm = () => {
 	const { toast } = useToast();
-
+	const searchParams = useSearchParams();
+	const callbackUrl = searchParams.get("callbackUrl");
 	const [loading, setLoading] = useState(false);
 
 	const [messageError, setMessageError] = useState("");
+
+	// const onClick = (provider: "email") => {
+	// 	signIn(provider, {
+	// 		callbackUrl: callbackUrl || "/",
+	// 	});
+	// };
 
 	const {
 		handleSubmit,
@@ -79,8 +88,7 @@ export const LoginForm = () => {
 						className="  border border-black mt-1"
 					/>
 					{errors.email && <ErrorMessage message={errors.email.message} className="text-gray-500 text-xs ml-1 mt-1 " />}
-				</div>
-
+				</div>{" "}
 				<div className=" w-full   px-4">
 					<Label htmlFor="password">Password</Label>
 					<Input
@@ -105,7 +113,13 @@ export const LoginForm = () => {
 			</div>
 			<div className="flex justify-center  ">{messageError && <ErrorFormMessage message={messageError} className="text-gray-900 text-sm mt-1" />}</div>
 			<div className="flex w-full items-center justify-center  max-lg:justify-center px-4 pt-5">
-				<Button data-ripple-light="true" type="submit" className=" w-full " disabled={loading}>
+				<Button
+					data-ripple-light="true"
+					type="submit"
+					// onClick={() => onClick("email")}
+					className=" w-full "
+					disabled={loading}
+				>
 					Login
 				</Button>
 			</div>

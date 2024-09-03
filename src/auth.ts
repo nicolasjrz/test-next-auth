@@ -17,19 +17,16 @@ export const {
     signOut // Exporta la función `signOut` para cerrar sesión
   } = NextAuth({
     
-    // Configuración de los eventos de NextAuth
   
-    
-    // Configuración de las páginas personalizadas para el inicio de sesión y errores
     pages: {
       signIn: "/auth/login", // Página personalizada para iniciar sesión
       error: "/auth/error" // Página personalizada para mostrar errores
     },
   
-    // Callbacks personalizados para modificar el comportamiento de NextAuth
+    
     callbacks: {
   
-      // Callback que se ejecuta al iniciar sesión
+     
       async signIn({ user, account }) {
         // console.log({ user, account });
        
@@ -73,25 +70,25 @@ export const {
   
         return token; // Devuelve el token modificado
       },
-      async redirect({ url, baseUrl }) {
-        // Define redirecciones basadas en el rol del usuario
-     const token = await getToken({
-		req:url,
-		secret: process.env.AUTH_SECRET,
-	});
+  //     async redirect({ url, baseUrl }) {
+  //       // Define redirecciones basadas en el rol del usuario
+  //    const token = await getToken({
+	// 	req:url,
+	// 	secret: process.env.AUTH_SECRET,
+	// });
   
-        if (token?.role === "administrator") {
-          return "/admin"; // Redirigir a la página de admin
-        } else if (token?.role === "user") {
-          return "/"; // Redirigir al dashboard de usuarios
-        }
+  //       if (token?.role === "administrator") {
+  //         return "/admin"; // Redirigir a la página de admin
+  //       } else if (token?.role === "user") {
+  //         return "/"; // Redirigir al dashboard de usuarios
+  //       }
   
-        // Redirección por defecto
-        if (url.startsWith("/")) return `${baseUrl}${url}`;
-        else if (new URL(url).origin === baseUrl) return url;
+  //       // Redirección por defecto
+  //       if (url.startsWith("/")) return `${baseUrl}${url}`;
+  //       else if (new URL(url).origin === baseUrl) return url;
   
-        return baseUrl;
-      }
+  //       return baseUrl;
+  //     }
     },
   
     // Adaptador de Prisma para manejar la conexión con la base de datos

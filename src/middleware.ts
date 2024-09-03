@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import authConfig from "./auth.config";
 
-import { DEFAULT_LOGIN_USER_REDIRECT, DEFAULT_LOGIN_ADMIN_REDIRECT, apiAuthPrefix, authRoutes, publicRoutes, adminRoutes } from "@/routes";
+import { DEFAULT_LOGIN_USER_REDIRECT, DEFAULT_LOGIN_ADMIN_REDIRECT, DEFAULT_LOGIN_REDIRECT, apiAuthPrefix, authRoutes, publicRoutes, adminRoutes } from "@/routes";
 
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
@@ -15,13 +15,6 @@ export default auth(async (req) => {
 	// Determina si el usuario está autenticado
 	const isLoggedIn = !!req.auth;
 
-	// console.log({ auth });
-	// const token = await getToken({
-	// 	req,
-	// 	secret: process.env.AUTH_SECRET,
-	// });
-	// console.log("ROLE:", token?.role);
-	// console.log("IS LOGGEDIN:", isLoggedIn);
 	const token = await getToken({
 		req,
 		secret: process.env.AUTH_SECRET,
@@ -29,6 +22,7 @@ export default auth(async (req) => {
 
 	const userRole = token?.role; // Asumimos que el rol se guarda en el token
 
+	console.log({ userRole });
 	const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
 
 	const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
@@ -41,14 +35,9 @@ export default auth(async (req) => {
 
 	if (isAuthRoute) {
 		if (isLoggedIn) {
-			// if (token!.role === "user") {
-			// 	NextResponse.redirect(new URL(DEFAULT_LOGIN_USER_REDIRECT, nextUrl));
-			// } else {
-			// 	return NextResponse.redirect(new URL(DEFAULT_LOGIN_ADMIN_REDIRECT, nextUrl));
-			// }
-			// return redirect:{}
+			return Response.redirect(new URL("/", nextUrl));
 		}
-		return; // Permite el acceso a la página de autenticación si no está autenticado
+		return null;
 	}
 
 	if (!isLoggedIn && !isPublicRoute) {
