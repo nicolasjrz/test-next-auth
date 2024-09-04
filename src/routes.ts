@@ -30,15 +30,3 @@ export const apiAuthPrefix = "/api/auth";
  * La ruta de redirección predeterminada después de iniciar sesión
  * @type {string}
  */
-
-const fafa = "fafa";
-
-if (fafa === "fafa") {
-	console.log("estoy en route");
-}
-
-export const DEFAULT_LOGIN_USER_REDIRECT = "/";
-
-export const DEFAULT_LOGIN_ADMIN_REDIRECT = "/admin";
-
-export const DEFAULT_LOGIN_REDIRECT = "/admin";
