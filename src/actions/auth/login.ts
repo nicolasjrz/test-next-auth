@@ -4,57 +4,62 @@ import { LoginSchema } from "@/schemas";
 import { z } from "zod";
 import { getUserByEmail } from "../user/get-user-by-email";
 import { signIn } from "@/auth";
-import { DEFAULT_LOGIN_USER_REDIRECT } from "@/routes";
-import { AuthError } from "next-auth";
-// import { AuthError } from "next-auth";
-// import { signIn } from "@/auth";
-// import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
-// import { LoginSchema } from "@/schemas";
-// import { AuthError } from "next-auth";
-// import { z } from "zod";
-// import { getUserByEmail } from "../user/get-user-by-email";
-// import { generateVerificationToken } from "@/lib/tokens";
-// import { sendVerificationEmail } from "@/lib/mail";
+import { cookies } from "next/headers"; // Importa cookies de Next.js para obtener las cookies del cliente
+import { getToken } from "next-auth/jwt";
 
 // Función para manejar el inicio de sesión
-export const login = async (values: z.infer<typeof LoginSchema>) => {
-	// Validación de los campos del formulario con el esquema definido en `LoginSchema`
+export const login = async (values: z.infer<typeof LoginSchema>, requestUrl: string) => {
+	// Validar campos del formulario
 	const validateFields = LoginSchema.safeParse(values);
-	// Si la validación falla, se devuelve un mensaje de error indicando que los campos son inválidos
 	if (!validateFields.success) {
-		// Extraer los errores de validación
 		const errors = validateFields.error.errors;
-		// Formatear los mensajes de error
 		const errorMessages = errors.map((err) => `${err.message}`).join("\n");
 		return { error: `${errorMessages}` };
 	}
-	// Desestructuración del email y la contraseña desde los datos validados
+
 	const { email, password } = validateFields.data;
-	// Buscar al usuario en la base de datos por su email
 	const existingUser = await getUserByEmail(email);
-	// Si el usuario no existe o faltan datos esenciales, se devuelve un mensaje de error
 	if (!existingUser || !existingUser.email || !existingUser.password) {
 		return { error: "El correo electrónico no existe en la base de datos" };
 	}
 
 	try {
 		// Intentar iniciar sesión con las credenciales proporcionadas
-		await signIn("credentials", {
+		const result = await signIn("credentials", {
+			redirect: false,
 			email,
 			password,
-			redirectTo: DEFAULT_LOGIN_USER_REDIRECT,
 		});
-	} catch (error) {
-		// Si ocurre un error durante el inicio de sesión, manejar los errores específicos de autenticación
-		if (error instanceof AuthError) {
-			switch (error.type) {
-				case "CredentialsSignin":
-					return { error: "¡Credenciales inválidas!" };
-				default:
-					return { error: "¡Algo salió mal!" };
-			}
+
+		if (result?.error) {
+			return { error: result.error };
 		}
-		// Si hay un error no manejado, se lanza para ser tratado en otro lugar
-		throw error;
+
+		// Obtener las cookies de la solicitud actual
+		const clientCookies = cookies().getAll();
+
+		// Obtener el token de sesión después del inicio de sesión exitoso
+		const token = await getToken({
+			req: { headers: { cookie: clientCookies.map((c) => `${c.name}=${c.value}`).join("; ") } },
+			secret: process.env.AUTH_SECRET,
+		});
+
+		if (!token) {
+			return { error: "No se pudo obtener el token de sesión" };
+		}
+
+		// Obtener el rol del usuario desde el token
+		const role = token.role; // Asegúrate de que `role` esté en el token
+
+		// Determinar la URL de redirección basada en el rol
+		let redirectTo = "/";
+		if (role === "administrator" || role === "owner") {
+			redirectTo = "/admin";
+		}
+
+		return { redirectTo }; // Retornar la URL de redirección
+	} catch (error) {
+		console.error("Error durante el inicio de sesión:", error);
+		return { error: "¡Algo salió mal!" };
 	}
 };
