@@ -1,15 +1,13 @@
 "use client";
-
-import { useForm } from "react-hook-form";
-import { ErrorMessage } from "./ui/ErrorMessage";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { ErrorMessage } from "./ui/ErrorMessage";
 import { ErrorFormMessage } from "./ui/ErrorFormMessage";
 import { Button, Input, Label } from "../ui";
 import { useToast } from "@/hooks/use-toast";
 import { login } from "@/actions/auth/login";
-import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
 
 interface FormInputs {
 	email: string;
@@ -18,27 +16,17 @@ interface FormInputs {
 
 export const LoginForm = () => {
 	const { toast } = useToast();
+	const router = useRouter(); // Usar useRouter para redirigir
 	const searchParams = useSearchParams();
-	const callbackUrl = searchParams.get("callbackUrl");
+	const callbackUrl = searchParams.get("callbackUrl") || "/";
 	const [loading, setLoading] = useState(false);
 
 	const [messageError, setMessageError] = useState("");
 
-	// const onClick = (provider: "email") => {
-	// 	signIn(provider, {
-	// 		callbackUrl: callbackUrl || "/",
-	// 	});
-	// };
-
 	const {
 		handleSubmit,
 		register,
-		formState: { isValid, errors },
-		resetField,
-		getValues,
-		setValue,
-		watch,
-		control,
+		formState: { errors },
 	} = useForm<FormInputs>({
 		defaultValues: {},
 	});
@@ -51,12 +39,12 @@ export const LoginForm = () => {
 		};
 
 		try {
-			const resp = await login(loginData); // Asegúrate de que `login` retorne el objeto esperado
+			const { error, redirectTo } = await login(loginData, callbackUrl);
 
-			console.log({ resp });
-
-			if (resp?.error) {
-				setMessageError(resp?.error || ""); // Establecer mensaje de error
+			if (error) {
+				setMessageError(error || ""); // Establecer mensaje de error
+			} else {
+				router.push(redirectTo!);
 			}
 		} catch (error) {
 			console.error("Error durante la solicitud:", error); // Registrar el error
