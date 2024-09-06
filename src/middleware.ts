@@ -3,7 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { cookies } from "next/headers";
 import { apiAuthPrefix, authRoutes, publicRoutes, adminRoutes } from "@/routes";
 
-export default async function auth(req) {
+export default async function auth(req: { nextUrl: any }) {
 	const { nextUrl } = req;
 
 	// Obtener cookies y token de sesión
