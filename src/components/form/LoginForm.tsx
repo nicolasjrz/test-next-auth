@@ -44,7 +44,8 @@ export const LoginForm = () => {
 			if (error) {
 				setMessageError(error || ""); // Establecer mensaje de error
 			} else {
-				router.push(redirectTo!);
+				router.replace(redirectTo!); // Redirigir a la URL adecuada
+				window.location.reload(); // Recargar la página después de redirigir
 			}
 		} catch (error) {
 			console.error("Error durante la solicitud:", error); // Registrar el error
