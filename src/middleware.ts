@@ -1,59 +1,58 @@
-import NextAuth from "next-auth";
-import authConfig from "./auth.config";
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { cookies } from "next/headers";
 import { apiAuthPrefix, authRoutes, publicRoutes, adminRoutes } from "@/routes";
 
-const { auth } = NextAuth(authConfig);
-
-export default auth(async (req) => {
-	// Extrae la URL solicitada
+export default async function auth(req) {
 	const { nextUrl } = req;
 
-	// Obtener las cookies de la solicitud actual
+	// Obtener cookies y token de sesión
 	const clientCookies = cookies().getAll();
 	const token = await getToken({
 		req: { headers: { cookie: clientCookies.map((c) => `${c.name}=${c.value}`).join("; ") } },
 		secret: process.env.AUTH_SECRET,
 	});
 
-	const userRole = token?.role; // Asumimos que el rol se guarda en el token
-	const isLoggedIn = !!token; // Verifica si el token existe
+	const userRole = token?.role; // Obtenemos el rol del token
+	const isLoggedIn = !!token; // Si el token existe, el usuario está logueado
 
+	// Identificar si es una ruta específica
 	const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthPrefix);
 	const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
 	const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 	const isAdminRoute = adminRoutes.includes(nextUrl.pathname);
 
-	if (isApiAuthRoute) {
-		return; // No redirigir, continuar con la petición
-	}
+	// No redirigir si es una ruta API relacionada con autenticación
+	if (isApiAuthRoute) return;
 
+	// Si el usuario intenta acceder a una ruta de autenticación (login, register, etc.)
 	if (isAuthRoute) {
 		if (isLoggedIn) {
-			if (userRole === "user") return NextResponse.redirect(new URL("/", nextUrl));
-			return NextResponse.redirect(new URL("/admin", nextUrl));
-			// return redirect:{}
+			// Redirigir según el rol si ya está logueado
+			if (userRole === "administrator") {
+				return NextResponse.redirect(new URL("/admin", nextUrl));
+			}
+			return NextResponse.redirect(new URL("/", nextUrl));
 		}
-		return; // Permite el acceso a la página de autenticación si no está autenticado
+		return; // Permitir acceso a las rutas de autenticación si no está logueado
 	}
 
+	// Si es una ruta de administración y el usuario no es administrador
 	if (isAdminRoute) {
-		if (isLoggedIn) {
-			if (userRole === "user") return NextResponse.redirect(new URL("/", nextUrl));
-			// return redirect:{}
+		if (!isLoggedIn || userRole !== "administrator") {
+			return NextResponse.redirect(new URL("/auth/login", nextUrl)); // Redirigir a login
 		}
-		return; // Permite el acceso a la página de autenticación si no está autenticado
 	}
 
+	// Si no está logueado y la ruta no es pública, redirigir a login
 	if (!isLoggedIn && !isPublicRoute) {
-		return Response.redirect(new URL("/auth/login", nextUrl));
+		return NextResponse.redirect(new URL("/auth/login", nextUrl));
 	}
 
-	return; // Permite que la petición continúe para el resto de las rutas
-});
+	return; // Permitir la petición para las demás rutas
+}
+
 export const config = {
-	// Matcher especifica las rutas donde se aplica este middleware
+	// Aplicar el middleware a las rutas especificadas
 	matcher: ["/((?!api|_next/static|_next/image|.*\\.png$).*)"],
 };
